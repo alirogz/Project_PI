@@ -1,0 +1,520 @@
+{{ define "product" }}
+<section class="product-hero py-5">
+    <div class="container">
+        <div class="row align-items-start">
+            <!-- KOLOM GAMBAR -->
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <div class="pastel-card product-media-card skeleton">
+                    {{ if .product.Image }}
+                    <img src="/uploads/{{ .product.Image }}" alt="{{ .product.Name }}" class="product-main-image">
+                    {{ else }}
+                    <img src="https://placehold.jp/600x800.png" alt="{{ .product.Name }}" class="product-main-image">
+                    {{ end }}
+                </div>
+            </div>
+
+            <!-- KOLOM DETAIL PRODUK -->
+            <div class="col-lg-6">
+                <div class="pastel-card product-detail-card">
+                    <div class="product-badge-row mb-3">
+                        <span class="badge-pill-soft">New Collection</span>
+                    </div>
+
+                    <h1 class="product-title mb-2">{{ .product.Name }}</h1>
+
+                    <div class="product-price-row mb-3">
+                        <span class="product-price-label">Harga</span>
+                    <div class="product-price-value">
+                        {{ formatRupiah .product.Price }}
+                    </div>
+
+                    </div>
+
+                    <div class="product-meta mb-3">
+                        <div class="product-meta-item">
+                            <span class="product-meta-label">Stok</span>
+                            <span class="product-meta-value">{{ .product.Stock }}</span>
+                        </div>
+                        {{ if .product.Sku }}
+                        <div class="product-meta-item">
+                            <span class="product-meta-label">SKU</span>
+                            <span class="product-meta-value">{{ .product.Sku }}</span>
+                        </div>
+                        {{ end }}
+                        {{ if .product.Weight }}
+                        <div class="product-meta-item">
+                            <span class="product-meta-label">Berat</span>
+                            <span class="product-meta-value">{{ .product.Weight }} gr</span>
+                        </div>
+                        {{ end }}
+                    </div>
+
+                    {{ if .product.ShortDescription }}
+                    <p class="product-shortdesc mb-4">
+                        {{ .product.ShortDescription }}
+                    </p>
+                    {{ end }}
+
+                <form action="/carts" method="POST">
+                    <input type="hidden" name="product_id" value="{{ .product.ID }}">
+                        <div class="row g-3 align-items-end">
+                            <!-- QTY -->
+                            <div class="col-md-5 col-sm-6">
+                                <label class="product-label d-block mb-1">Jumlah</label>
+                                <div class="qty-input-group">
+                                    <button class="qty-btn" type="button" id="qty-minus">−</button>
+                                    <input type="number" class="qty-input" name="qty" id="qty-input" value="1" min="1">
+                                    <button class="qty-btn" type="button" id="qty-plus">+</button>
+                                </div>
+                            </div>
+                    
+                            <!-- UKURAN -->
+                            <div class="col-md-3 col-sm-6">
+                                <label class="product-label d-block mb-1">Ukuran</label>
+                                <select name="size" class="product-size-select">
+                                    {{ $sizes := .product.SizeList }}
+                                    {{ if $sizes }}
+                                    {{ range $sizes }}
+                                    <option value="{{ . }}">{{ . }}</option>
+                                    {{ end }}
+                                    {{ else }}
+                                    <option value="">-</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+                    
+                            <!-- WARNA -->
+                            <div class="col-md-4 col-sm-6">
+                                <label class="product-label d-block mb-1">Warna</label>
+                                <select name="color" class="product-size-select">
+                                    {{ if .product.ColorList }}
+                                    {{ range .product.ColorList }}
+                                    <option value="{{ . }}">{{ . }}</option>
+                                    {{ end }}
+                                    {{ else }}
+                                    <option value="">Pilih Warna</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn-add-cart w-100">
+                                    Tambahkan ke Keranjang
+                                </button>
+                            </div>
+
+                        </div>
+                </form>
+
+
+                    <!-- INFO KECIL DI BAWAH -->
+                    <div class="product-note mt-3">
+                        Pengiriman cepat &amp; aman. Gratis retur 7 hari untuk produk fashion tertentu.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    :root {
+        --pastel-bg: #f9f5ff;
+        --pastel-card: #ffffff;
+        --pastel-accent: #8b5cf6;
+        /* ungu pastel */
+        --pastel-accent-soft: #ede9fe;
+        --pastel-border: #e5e7eb;
+        --text-main: #111827;
+        --text-muted: #6b7280;
+    }
+
+    .product-hero {
+        background: var(--pastel-bg);
+        padding-top: 3rem;
+        padding-bottom: 3.5rem;
+    }
+
+    .pastel-card {
+        background: var(--pastel-card);
+        border-radius: 18px;
+        border: 1px solid var(--pastel-border);
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
+        padding: 24px 28px;
+    }
+
+    .product-media-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 360px;
+    }
+
+    .product-main-image {
+        width: 100%;
+        max-height: 520px;
+        object-fit: cover;
+        border-radius: 16px;
+    }
+
+    .product-detail-card {
+        color: var(--text-main);
+    }
+
+    .product-badge-row {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .badge-pill-soft {
+        font-size: 0.75rem;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: var(--pastel-accent-soft);
+        color: var(--pastel-accent);
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .product-title {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .product-price-row {
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.25rem;
+    }
+
+    .product-price-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 0.1rem;
+    }
+
+    .product-price-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--pastel-accent);
+    }
+
+    .product-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        margin-top: 0.5rem;
+    }
+
+    .product-meta-item {
+        display: flex;
+        flex-direction: column;
+        min-width: 90px;
+    }
+
+    .product-meta-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+    }
+
+    .product-meta-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .product-shortdesc {
+        margin-top: 1.25rem;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text-muted);
+    }
+
+    /* QTY INPUT PASTEL */
+    .qty-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+        .product-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .product-size-select {
+        width: 100%;
+        border-radius: 999px;
+        border: 1px solid var(--pastel-border);
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        background: #f9fafb;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .product-size-select:focus {
+        border-color: var(--pastel-accent);
+        box-shadow: 0 0 0 1px var(--pastel-accent-soft);
+    }
+
+
+    .qty-input-group {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: #f3f4ff;
+        padding: 2px;
+    }
+
+    .qty-btn {
+        border: none;
+        background: transparent;
+        width: 40px;
+        height: 36px;
+        border-radius: 999px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .qty-btn:hover {
+        background: var(--pastel-accent-soft);
+        transform: translateY(-1px);
+    }
+
+    .qty-input {
+        width: 60px;
+        border: none;
+        text-align: center;
+        background: transparent;
+        font-weight: 500;
+        color: var(--text-main);
+        outline: none;
+    }
+
+    .qty-input::-webkit-inner-spin-button,
+    .qty-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .qty-input {
+        -moz-appearance: textfield;
+    }
+
+    /* BUTTON ADD TO CART */
+    .btn-add-cart {
+        width: 100%;
+        border: none;
+        border-radius: 999px;
+        padding: 12px 24px;
+        background: var(--pastel-accent);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.98rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        box-shadow: 0 12px 22px rgba(129, 140, 248, 0.45);
+        cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .btn-add-cart:hover {
+        background: #7c3aed;
+        box-shadow: 0 16px 30px rgba(79, 70, 229, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .btn-add-cart:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.4);
+    }
+
+    .product-note {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    @media (max-width: 767.98px) {
+        .product-hero {
+            padding-top: 2rem;
+            padding-bottom: 2.5rem;
+        }
+
+        .pastel-card {
+            padding: 18px 18px;
+        }
+
+        .product-title {
+            font-size: 1.5rem;
+        }
+
+        .product-price-value {
+            font-size: 1.5rem;
+        }
+
+        .btn-add-cart {
+            margin-top: 0.75rem;
+            width: 100%;
+        }
+        
+        .product-label{
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.qty-input-group{
+  width: 100%;
+  justify-content: space-between;
+}
+
+.qty-input{
+  flex: 1;
+  max-width: 72px;
+}
+
+
+.product-buy-row .product-size-select,
+.product-buy-row .qty-input-group {
+  height: 44px;
+}
+
+.qty-input-group{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px;
+}
+
+.qty-btn{
+  width: 44px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-input{
+  flex: 1;
+  height: 36px;
+  max-width: 84px;
+}
+
+.product-size-select{
+  height: 44px;
+  padding: 10px 16px;
+}
+
+/* ===== PRODUCT FORM LAYOUT ===== */
+
+/* Label */
+.product-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* Select ukuran & warna */
+.product-size-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.product-size-select:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+}
+
+/* Spacing antar field */
+.product-size-select {
+  margin-bottom: 6px;
+}
+
+/* Wrapper tombol */
+.col-12.mt-3 {
+  margin-top: 18px !important; /* jarak ideal */
+}
+
+/* Tombol add to cart */
+.btn-add-cart {
+  height: 48px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+
+.btn-add-cart:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(99, 102, 241, 0.35);
+  filter: brightness(1.03);
+}
+
+.btn-add-cart:active {
+  transform: scale(0.98);
+}
+
+
+    }
+</style>
+
+<script>
+    (function () {
+        var input = document.getElementById('qty-input');
+        var minus = document.getElementById('qty-minus');
+        var plus = document.getElementById('qty-plus');
+
+        if (!input) return;
+
+        function clamp() {
+            var v = parseInt(input.value, 10);
+            if (isNaN(v) || v < 1) v = 1;
+            input.value = v;
+        }
+
+        if (minus) {
+            minus.addEventListener('click', function () {
+                clamp();
+                var v = parseInt(input.value, 10);
+                if (v > 1) input.value = v - 1;
+            });
+        }
+
+        if (plus) {
+            plus.addEventListener('click', function () {
+                clamp();
+                var v = parseInt(input.value, 10) || 1;
+                input.value = v + 1;
+            });
+        }
+
+        input.addEventListener('blur', clamp);
+    })();
+</script>
+{{ end }}

@@ -1,0 +1,584 @@
+{{ define "cart" }}
+<section class="cart-page py-5">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h1 class="cart-title mb-1">Keranjang Belanja</h1>
+                <p class="cart-subtitle mb-0">
+                    Cek kembali item fashion yang kamu pilih sebelum checkout.
+                </p>
+            </div>
+            <div class="mt-3 mt-md-0 cart-count-pill">
+                <span class="me-1">Item di keranjang:</span>
+                <strong>{{ .cartCount }}</strong>
+            </div>
+        </div>
+
+        {{ if not .items }}
+        <!-- KERANJANG KOSONG -->
+        <div class="pastel-card text-center py-5">
+            <i class="fa fa-shopping-cart fa-3x text-muted mb-3 d-block"></i>
+            <h4>Keranjang belanja kamu masih kosong</h4>
+            <p class="text-muted mb-3">
+                Yuk cari produk yang kamu suka, lalu tambahkan ke keranjang.
+            </p>
+            <a href="/products" class="btn-product-detail">
+                Mulai Belanja
+            </a>
+        </div>
+        {{ else }}
+
+        <div class="row g-4">
+            <!-- KOLOM ITEM CART -->
+            <div class="col-lg-7">
+                <div class="pastel-card h-100">
+                    <h5 class="mb-3">Item di Keranjang</h5>
+                    <form method="POST" action="/carts/update">
+                        <div class="table-responsive">
+                            <table class="table cart-table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40px;"></th>
+                                        <th style="width:90px;">Image</th>
+                                        <th>Product</th>
+                                        <th class="text-end" style="width:120px;">Price</th>
+                                        <th class="text-center" style="width:160px;">Qty</th>
+                                        <th class="text-end" style="width:140px;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{ range $i, $item := .items }}
+                                    <tr>
+                                        <!-- HAPUS -->
+                                        <td class="text-center">
+                                            <form method="POST" action="/carts/remove" style="display:inline;">
+                                                <input type="hidden" name="item_id" value="{{ $item.ID }}">
+                                                <button type="submit" class="btn-remove-item" title="Remove item">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+
+                                        <!-- GAMBAR PRODUK -->
+                                        <td>
+                                            {{ $p := $item.Product }}
+                                            {{ if $p.Image }}
+                                            <img src="/uploads/{{ $p.Image }}" alt="{{ $p.Name }}"
+                                                class="cart-product-img">
+                                            {{ else }}
+                                            <img src="https://placehold.jp/120x160.png" alt="{{ $p.Name }}"
+                                                class="cart-product-img">
+                                            {{ end }}
+                                        </td>
+
+                                        <!-- NAMA PRODUK -->
+                                        <td>
+                                            <div class="cart-product-name">
+                                                <a href="/products/{{ $p.Slug }}">{{ $p.Name }}</a>
+                                            </div>
+                                            {{ if $p.Sku }}
+                                            <div class="cart-product-meta">
+                                                SKU: {{ $p.Sku }}
+                                            </div>
+                                            {{ end }}
+
+                                            {{ if $item.Size }}
+                                            <div class="cart-product-meta">
+                                                Ukuran: {{ $item.Size }}
+                                            </div>
+                                            {{ end }}
+                                        </td>
+
+
+                                        <!-- HARGA -->
+                                        <td class="text-end">
+                                            {{ $item.BasePrice }}
+                                        </td>
+
+                                        <!-- QTY -->
+                                        <td class="text-center">
+                                            <div class="qty-wrapper">
+                                                <button type="submit" name="update" value="minus-{{ $item.ID }}"
+                                                    class="btn-qty" title="Kurangi">
+                                                    −
+                                                </button>
+                                                <input type="text" name="qty-{{ $item.ID }}" id="qty-{{ $item.ID }}"
+                                                    value="{{ $item.Qty }}" class="qty-input" readonly>
+                                                <button type="submit" name="update" value="plus-{{ $item.ID }}"
+                                                    class="btn-qty" title="Tambah">
+                                                    +
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                        <!-- SUBTOTAL -->
+                                        <td class="text-end">
+                                            {{ $item.BaseTotal }}
+                                        </td>
+                                    </tr>
+                                    {{ end }}
+
+                                    <tr>
+                                        <td colspan="6" class="text-end">
+                                            <button type="submit" class="btn-cart-update">
+                                                <i class="fa fa-sync me-1"></i> Update Cart
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- KOLOM RINGKASAN & CHECKOUT -->
+            <div class="col-lg-5">
+                <div class="pastel-card h-100">
+                    <h5 class="mb-3">Ringkasan & Checkout</h5>
+
+                    <div class="cart-summary mb-3">
+                        <div class="summary-row">
+                            <span>Sub Total</span>
+                            <strong>{{ .cart.BaseTotalPrice }}</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Tax ({{ .cart.TaxPercent }}%)</span>
+                            <strong>{{ .cart.TaxAmount }}</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Diskon</span>
+                            <strong>- {{ .cart.DiscountAmount }}</strong>
+                        </div>
+                        <div class="summary-row summary-row-total">
+                            <span>Total</span>
+                            <strong>
+                                <span id="grand-total" data-base="{{ .cart.GrandTotal }}">
+                                    {{ .cart.GrandTotal }}
+                                </span>
+                            </strong>
+                        </div>
+                    </div>
+
+                    <!-- FORM CHECKOUT -->
+                    <form method="POST" action="/orders/checkout">
+                        <div class="mb-3">
+                            <label class="checkout-label mb-1">Metode Pengiriman</label>
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <select name="courier" class="form-control form-control-sm">
+                                        <option value="jne">JNE</option>
+                                        <option value="pos">POS</option>
+                                    </select>
+                                </div>
+                                <div class="col-8">
+                                    <select name="shipping_service" id="shipping_service"
+                                        class="form-control form-control-sm">
+                                        <option value="REG" data-fee="14000">REG (Rp 14.000)</option>
+                                        <option value="YES" data-fee="22000">YES (Rp 22.000)</option>
+                                        <option value="ECO" data-fee="9000">ECO (Rp 9.000)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- fee yang dikirim ke backend -->
+                            <input type="hidden" name="shipping_fee" id="shipping_fee" value="0">
+
+                            <!-- field lama (disembunyikan, tetap ada agar kompatibel) -->
+                            <select name="city_id" class="form-control city_id d-none"></select>
+                            <select name="shipping_fee_old" class="form-control shipping_fee_options d-none"></select>
+
+                            <small class="text-muted d-block mt-1">
+                                Biaya kirim:
+                                <span id="shipping-fee-display">0</span>
+                            </small>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="mb-2">
+                            <label class="checkout-label mb-1">Detail Pengiriman</label>
+                        </div>
+
+                        {{ if .addresses }}
+                        <div class="mb-3" id="saved-addresses">
+                            <small class="text-muted d-block mb-1">Pilih alamat pengiriman:</small>
+
+                            {{ range .addresses }}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="address_id" id="addr-{{ .ID }}"
+                                    value="{{ .ID }}" {{ if .IsPrimary }}checked{{ end }}>
+                                <label class="form-check-label" for="addr-{{ .ID }}">
+                                    <strong>{{ .Name }}</strong>
+                                    {{ if .Address1 }}, {{ .Address1 }}{{ end }}
+                                    {{ if .CityID }}, {{ .CityID }}{{ end }}
+                                    {{ if .PostCode }}, {{ .PostCode }}{{ end }}
+                                    {{ if .Phone }} ({{ .Phone }}){{ end }}
+                                    {{ if .IsPrimary }}
+                                    <span class="badge badge-success ml-1">UTAMA</span>
+                                    {{ end }}
+                                </label>
+                            </div>
+                            {{ end }}
+
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="radio" name="address_id" id="addr-new" value="">
+                                <label class="form-check-label" for="addr-new">
+                                    Gunakan alamat baru
+                                </label>
+                            </div>
+
+                            <small class="text-muted d-block mt-1">
+                                Jika memilih alamat baru, isi form di bawah ini.
+                            </small>
+                        </div>
+                        {{ else }}
+                        <p class="small text-muted mb-2" id="no-saved-addresses">
+                            Belum ada alamat tersimpan. Isi form di bawah ini untuk alamat pengiriman.
+                        </p>
+                        {{ end }}
+
+                        <div id="new-address-fields">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="text" name="first_name" class="form-control form-control-sm mb-2"
+                                        placeholder="Nama Depan" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" name="last_name" class="form-control form-control-sm mb-2"
+                                        placeholder="Nama Belakang" />
+                                </div>
+
+                                <div class="col-12">
+                                    <input type="text" name="address1" class="form-control form-control-sm mb-2"
+                                        placeholder="Alamat Lengkap" />
+                                </div>
+                                <div class="col-12">
+                                    <input type="text" name="address2" class="form-control form-control-sm mb-2"
+                                        placeholder="Catatan Atau Patokan Untuk Kurir" />
+                                </div>
+
+                                <div class="col-6">
+                                    <input type="text" name="city_id" class="form-control form-control-sm mb-2"
+                                        placeholder="Kota / Kabupaten" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" name="post_code" class="form-control form-control-sm mb-2"
+                                        placeholder="Kode Pos" />
+                                </div>
+
+                                <div class="col-6">
+                                    <input type="text" name="phone" class="form-control form-control-sm mb-2"
+                                        placeholder="Nomor Handphone" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" name="email" class="form-control form-control-sm mb-2"
+                                        placeholder="Email" />
+                                </div>
+                            </div>
+
+                            <div class="form-check mb-3 mt-1">
+                                <input type="checkbox" class="form-check-input" id="saveAddress" name="save_address">
+                                <label class="form-check-label small" for="saveAddress">
+                                    Simpan alamat untuk pemesanan selanjutnya?
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-checkout w-100">
+                            GO TO CHECKOUT
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</section>
+
+<style>
+    :root {
+        --pastel-bg: #f9f5ff;
+        --pastel-card: #ffffff;
+        --pastel-accent: #8b5cf6;
+        --pastel-accent-soft: #ede9fe;
+        --pastel-border: #e5e7eb;
+        --text-main: #111827;
+        --text-muted: #6b7280;
+    }
+
+    .cart-page {
+        background: var(--pastel-bg);
+    }
+
+    .cart-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-main);
+        letter-spacing: 0.02em;
+    }
+
+    .cart-subtitle {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .cart-count-pill {
+        padding: 8px 18px;
+        border-radius: 999px;
+        background: var(--pastel-card);
+        border: 1px solid var(--pastel-border);
+        font-size: 0.9rem;
+        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .pastel-card {
+        background: var(--pastel-card);
+        border-radius: 18px;
+        border: 1px solid var(--pastel-border);
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.05);
+        padding: 22px 22px 20px 22px;
+    }
+
+    .cart-table thead tr {
+        background: #f4f3ff;
+    }
+
+    .cart-table th {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--pastel-border);
+        border-top: none;
+    }
+
+    .cart-table td {
+        vertical-align: middle;
+        border-top: 1px solid var(--pastel-border);
+        font-size: 0.9rem;
+    }
+
+    .cart-product-img {
+        width: 70px;
+        height: 90px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    .cart-product-name a {
+        text-decoration: none;
+        color: var(--text-main);
+        font-weight: 600;
+    }
+
+    .cart-product-meta {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .btn-remove-item {
+        border: none;
+        background: #fee2e2;
+        color: #b91c1c;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+    }
+
+    .btn-remove-item:hover {
+        background: #fecaca;
+    }
+
+    .qty-wrapper {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: #f3f4ff;
+        padding: 2px;
+    }
+
+    .btn-qty {
+        border: none;
+        background: transparent;
+        width: 34px;
+        height: 32px;
+        border-radius: 999px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.08s ease;
+    }
+
+    .btn-qty:hover {
+        background: var(--pastel-accent-soft);
+        transform: translateY(-1px);
+    }
+
+    .qty-input {
+        width: 50px;
+        border: none;
+        text-align: center;
+        background: transparent;
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .qty-input::-webkit-inner-spin-button,
+    .qty-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .qty-input {
+        -moz-appearance: textfield;
+    }
+
+    .btn-cart-update {
+        border-radius: 999px;
+        padding: 8px 18px;
+        border: none;
+        background: var(--pastel-accent);
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        box-shadow: 0 12px 22px rgba(129, 140, 248, 0.45);
+    }
+
+    .cart-summary .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+    }
+
+    .cart-summary .summary-row-total {
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px dashed var(--pastel-border);
+        font-weight: 600;
+    }
+
+    .checkout-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+    }
+
+    .btn-checkout {
+        border: none;
+        border-radius: 999px;
+        padding: 11px 20px;
+        background: var(--pastel-accent);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.96rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        box-shadow: 0 14px 26px rgba(129, 140, 248, 0.6);
+        transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+    }
+
+    .btn-checkout:hover {
+        background: #7c3aed;
+        box-shadow: 0 18px 32px rgba(79, 70, 229, 0.6);
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 767.98px) {
+        .cart-title {
+            font-size: 1.6rem;
+        }
+
+        .pastel-card {
+            padding: 18px 16px;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        // Format rupiah untuk tampilan ongkir & total
+        function formatIDR(n) {
+            try {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(n);
+            } catch (e) {
+                return n;
+            }
+        }
+
+        // Shipping fee + grand total
+        var serviceSel = document.getElementById('shipping_service');
+        var feeInput = document.getElementById('shipping_fee');
+        var feeDisp = document.getElementById('shipping-fee-display');
+        var grandEl = document.getElementById('grand-total');
+
+        if (serviceSel && feeInput && grandEl) {
+            function applyFee() {
+                var base = parseFloat(grandEl.getAttribute('data-base')) || 0;
+                var opt = serviceSel.options[serviceSel.selectedIndex];
+                var fee = parseFloat(opt.getAttribute('data-fee')) || 0;
+                feeInput.value = fee;
+                if (feeDisp) {
+                    feeDisp.textContent = formatIDR(fee);
+                }
+                grandEl.textContent = formatIDR(base + fee);
+            }
+
+            serviceSel.addEventListener('change', applyFee);
+            applyFee();
+        }
+
+        // Toggle form alamat baru (opsi 1 + 3)
+        var newFields = document.getElementById('new-address-fields');
+        var saveAddress = document.getElementById('saveAddress');
+        var addrNew = document.getElementById('addr-new');
+
+        function setNewAddressMode(isNew) {
+            if (!newFields) return;
+            newFields.style.display = isNew ? '' : 'none';
+
+            // Disable input saat pakai alamat tersimpan supaya tidak "ikut terkirim" / membingungkan
+            newFields.querySelectorAll('input, textarea, select').forEach(function (el) {
+                el.disabled = !isNew;
+            });
+
+            // Kalau bukan alamat baru, checkbox simpan alamat juga dimatikan
+            if (!isNew && saveAddress) {
+                saveAddress.checked = false;
+            }
+        }
+
+        // Default: jika ada address tersimpan, pakai yang ter-check (biasanya utama) => sembunyikan form baru.
+        // Jika tidak ada address tersimpan, form baru tampil.
+        var hasSaved = !!document.getElementById('saved-addresses');
+        if (hasSaved) {
+            var checked = document.querySelector('input[name="address_id"]:checked');
+            var isNew = checked && checked.id === 'addr-new';
+            setNewAddressMode(!!isNew);
+        } else {
+            setNewAddressMode(true);
+        }
+
+        // Listen change
+        document.querySelectorAll('input[name="address_id"]').forEach(function (el) {
+            el.addEventListener('change', function () {
+                setNewAddressMode(this.id === 'addr-new');
+            });
+        });
+    })();
+</script>
+{{ end }}

@@ -1,0 +1,427 @@
+{{ define "admin_order_show" }}
+<section class="admin-page py-5">
+    <div class="container">
+
+        {{ if .success }}<div class="alert alert-success admin-alert mb-3">{{ index .success 0 }}</div>{{ end }}
+        {{ if .error }}<div class="alert alert-danger admin-alert mb-3">{{ index .error 0 }}</div>{{ end }}
+
+        <!-- HEADER -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h1 class="admin-title mb-1">Admin • Order Detail</h1>
+                <p class="admin-subtitle mb-1">
+                    Order Code <strong>#{{ .order.Code }}</strong>
+                </p>
+
+                {{ $statusLabel := .order.StatusText }}
+                {{ $statusLower := lower $statusLabel }}
+                <span class="status-pill
+                    {{ if eq $statusLower " pending" }} status-pill-pending {{ else if eq $statusLower "diproses" }}
+                    status-pill-progress {{ else if eq $statusLower "dikirim" }} status-pill-shipped {{ else if eq
+                    $statusLower "selesai" }} status-pill-completed {{ else }} status-pill-neutral {{ end }}">
+                    {{ $statusLabel }}
+                </span>
+            </div>
+
+            <div class="mt-3 mt-md-0 text-md-right">
+                {{ $ps := lower .order.PaymentStatus }}
+                <span class="payment-chip
+                    {{ if eq $ps " paid" }} payment-chip-paid {{ else if eq $ps "waiting_review" }} payment-chip-review
+                    {{ else if eq $ps "rejected" }} payment-chip-reject {{ else }} payment-chip-unpaid {{ end }}">
+                    {{ .order.PaymentStatusText }}
+                </span>
+
+                <!-- Tombol Print Invoice -->
+                <button type="button" class="btn-print-invoice d-block d-md-inline-block mt-2 mt-md-3"
+                    onclick="window.print()">
+                    Print Invoice / PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="row" id="invoice-area">
+            <!-- KIRI: ITEM & TOTAL -->
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div class="pastel-card mb-3">
+                    <h6 class="orders-label mb-3">Item Pesanan</h6>
+
+                    {{ range .order.OrderItems }}
+                    <div class="d-flex align-items-center py-2 border-bottom last-border-0">
+                        {{ if .ProductImageURL }}
+                        <img src="{{ .ProductImageURL }}" alt="{{ .Name }}" class="order-item-img mr-3">
+                        {{ else }}
+                        <div class="order-item-placeholder mr-3"></div>
+                        {{ end }}
+
+                        <div class="flex-fill">
+                            <div class="font-weight-bold">{{ .Name }}</div>
+                            <div class="text-muted small">Qty: {{ .Qty }}</div>
+                        </div>
+                        <div class="text-right small">
+                            {{ .SubTotal }}
+                        </div>
+                    </div>
+                    {{ end }}
+
+                    <div class="mt-3 small">
+                        <div class="d-flex justify-content-between py-1">
+                            <span>Subtotal</span>
+                            <span>{{ .order.BaseTotalPrice }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span>Shipping</span>
+                            <span>{{ .order.ShippingCost }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span>Discount ({{ .order.DiscountPercent }}%)</span>
+                            <span>-{{ .order.DiscountAmount }}</span>
+                        </div>
+                        <hr />
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Subtotal</span>
+                        <span> {{ formatRupiah .order.SubtotalFloat }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Ongkir</span>
+                        <span>{{ formatRupiah .order.ShippingCostFloat }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span>Kode unik</span>
+                        <span>+ {{ .order.PaymentUniqueCode }}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between py-1 font-weight-bold">
+                        <span>Total bayar</span>
+                        <span> {{ formatRupiah .order.PaymentTotalFloat }}</span>
+                    </div>
+
+
+                        <!-- 🔹 Total item & berat -->
+                        <hr />
+                        <div class="d-flex justify-content-between py-1">
+                            <span>Total item</span>
+                            <span>{{ .totalItems }} barang</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span>Total berat</span>
+                            {{ if gt .totalWeight 0.0 }}
+                            <span>
+                                {{ printf "%.0f" .totalWeight }} gr
+                                ({{ printf "%.2f" .totalWeightKg }} kg)
+                            </span>
+                            {{ else }}
+                            <span>–</span>
+                            {{ end }}
+                        </div>
+
+
+                    </div>
+                </div>
+
+                <!-- Aksi admin: update status -->
+                <div class="pastel-card">
+                    <form method="POST" action="/admin/orders/{{ .order.ID }}/status"
+                        class="form-inline flex-wrap no-print">
+                        <label class="admin-label mr-2 mb-2 mb-md-0">
+                            Status Pengiriman:
+                        </label>
+                        <select name="status" class="form-control form-control-sm admin-input mr-2 mb-2 mb-md-0">
+                            <option value="pending" {{ if eq .order.Status 0 }}selected{{ end }}>Pending</option>
+                            <option value="processing" {{ if eq .order.Status 1 }}selected{{ end }}>Diproses</option>
+                            <option value="shipped" {{ if eq .order.Status 2 }}selected{{ end }}>Dikirim</option>
+                            <option value="completed" {{ if eq .order.Status 3 }}selected{{ end }}>Selesai</option>
+                        </select>
+                        <button type="submit" class="btn-admin-primary">
+                            Update Status
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="pastel-card mb-3">
+                <h6 class="orders-label mb-3">Bukti Pembayaran</h6>
+            
+                {{ if .order.PaymentProof }}
+                <p class="small mb-2">
+                    User telah mengunggah bukti pembayaran.
+                </p>
+            
+                <!-- kalau file gambar, tampilkan thumbnail -->
+                <img src="/public/payment_proofs/{{ .order.PaymentProof }}" alt="Bukti pembayaran"
+                    style="max-width: 100%; border-radius: 12px; margin-bottom: 8px;">
+            
+                <p class="small mb-3">
+                    <a href="/public/payment_proofs/{{ .order.PaymentProof }}" target="_blank">
+                        Lihat / download bukti pembayaran
+                    </a>
+                </p>
+            
+                <div class="no-print">
+                    <form method="POST" action="/admin/orders/{{ .order.ID }}/payment/approve" style="display:inline-block">
+                        <button type="submit" class="btn-admin-primary" style="margin-right:8px">
+                            Terima Pembayaran
+                        </button>
+                    </form>
+            
+                    <form method="POST" action="/admin/orders/{{ .order.ID }}/payment/reject" style="display:inline-block"
+                        onsubmit="return confirm('Yakin ingin menolak pembayaran ini?');">
+                        <button type="submit" class="btn-admin-danger">
+                            Tolak Pembayaran
+                        </button>
+                    </form>
+                </div>
+                {{ else }}
+                <p class="small text-muted mb-0">
+                    Belum ada bukti pembayaran yang diunggah oleh customer.
+                </p>
+                {{ end }}
+            </div>
+
+
+            <!-- KANAN: INFO PENGIRIMAN -->
+            <div class="col-lg-4">
+                <div class="pastel-card mb-3">
+                    <h6 class="orders-label mb-3">Shipping Information</h6>
+                    <p class="small mb-1">
+                        <strong>Courier:</strong> {{ .order.ShippingCourier }}
+                    </p>
+                    <p class="small mb-1">
+                        <strong>Nama:</strong><br>
+                        {{ .order.OrderCustomer.FirstName }} {{ .order.OrderCustomer.LastName }}
+                    </p>
+                    <p class="small mb-1">
+                        <strong>Phone:</strong><br>
+                        {{ .order.OrderCustomer.Phone }}
+                    </p>
+                    <p class="small mb-0">
+                        <strong>Address:</strong><br>
+                        {{ .order.OrderCustomer.Address1 }} {{ .order.OrderCustomer.Address2 }}
+                    </p>
+                </div>
+
+                <div class="pastel-card mb-3">
+                    <h6 class="orders-label mb-3">Customer Notes</h6>
+                    <p class="small text-muted mb-0">—</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3 no-print">
+            <a href="/admin/orders" class="btn-order-back">&larr; Back to Orders</a>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .admin-page {
+        background: var(--pastel-bg);
+    }
+
+    .admin-title {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .admin-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .pastel-card {
+        background: var(--pastel-card);
+        border-radius: 18px;
+        border: 1px solid var(--pastel-border);
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.05);
+        padding: 18px 18px 20px;
+    }
+
+    .orders-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+    }
+
+    .order-item-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        object-fit: cover;
+        background: #f9fafb;
+    }
+
+    .order-item-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: #f3f4ff;
+    }
+
+    .last-border-0:last-child {
+        border-bottom: 0 !important;
+    }
+
+    .admin-input {
+        border-radius: 999px;
+        border-color: var(--pastel-border);
+        font-size: 0.9rem;
+    }
+
+    .admin-input:focus {
+        border-color: var(--pastel-accent);
+        box-shadow: 0 0 0 0.15rem rgba(129, 140, 248, 0.25);
+    }
+
+    /* Badge status pesanan */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border: 1px solid transparent;
+    }
+
+    .status-pill-pending {
+        background: #fef9c3;
+        color: #854d0e;
+        border-color: #facc15;
+    }
+
+    .status-pill-progress {
+        background: #e0f2fe;
+        color: #075985;
+        border-color: #38bdf8;
+    }
+
+    .status-pill-shipped {
+        background: #ddd6fe;
+        color: #5b21b6;
+        border-color: #a855f7;
+    }
+
+    .status-pill-completed {
+        background: #dcfce7;
+        color: #166534;
+        border-color: #22c55e;
+    }
+
+    .status-pill-neutral {
+        background: #e5e7eb;
+        color: #374151;
+        border-color: #d1d5db;
+    }
+
+    /* Badge payment */
+    .payment-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border: 1px solid transparent;
+    }
+
+    .payment-chip-paid {
+        background: #dcfce7;
+        color: #15803d;
+        border-color: #22c55e;
+    }
+
+    .payment-chip-review {
+        background: #f5f3ff;
+        color: #5b21b6;
+        border-color: #a855f7;
+    }
+
+    .payment-chip-reject {
+        background: #fee2e2;
+        color: #b91c1c;
+        border-color: #f97373;
+    }
+
+    .payment-chip-unpaid {
+        background: #fef2f2;
+        color: #b91c1c;
+        border-color: #fecaca;
+    }
+
+    /* Tombol print */
+    .btn-print-invoice {
+        border-radius: 999px;
+        padding: 6px 16px;
+        border: 1px solid var(--pastel-accent);
+        background: #f5f3ff;
+        color: var(--pastel-accent);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .btn-print-invoice:hover {
+        background: var(--pastel-accent);
+        color: #fff;
+    }
+
+    /* Mode cetak: sembunyikan navbar/footer, tombol, dll */
+    @media print {
+    /* putih polos, tapi tetap pakai warna (badge, dll) */
+    body {
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* sembunyikan navbar, footer, tombol, dll */
+    nav,
+    footer,
+    .no-print,
+    .btn-print-invoice {
+        display: none !important;
+    }
+
+    .admin-page {
+        padding-top: 0 !important;
+    }
+
+    /* bikin invoice full-width dan dekat tepi kertas */
+    .admin-page .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 10mm 12mm !important; /* kira-kira margin A4 */
+    }
+
+    #invoice-area {
+        margin-top: 0 !important;
+    }
+
+    .pastel-card {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        border-color: #dddddd !important;
+    }
+
+    /* font sedikit dibesarkan biar enak dibaca di kertas */
+    h1.admin-title {
+        font-size: 16pt;
+    }
+    .orders-label,
+    .admin-subtitle,
+    .small,
+    td,
+    th {
+        font-size: 10pt !important;
+    }
+}
+
+</style>
+{{ end }}

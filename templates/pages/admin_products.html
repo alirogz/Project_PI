@@ -1,0 +1,176 @@
+{{ define "admin_products" }}
+<section class="admin-page py-5">
+    <div class="container">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h1 class="admin-title mb-1">Admin • Produk</h1>
+                <p class="admin-subtitle mb-0">
+                </p>
+            </div>
+            <div class="mt-3 mt-md-0 text-md-right">
+                <a href="/admin/products/new" class="btn-admin-primary">
+                    + Tambah Produk
+                </a>
+            </div>
+        </div>
+
+        {{ if .success }}
+        <div class="alert alert-success admin-alert mb-3">
+            {{ .success }}
+        </div>
+        {{ end }}
+        {{ if .error }}
+        <div class="alert alert-danger admin-alert mb-3">
+            {{ .error }}
+        </div>
+        {{ end }}
+
+        <div class="pastel-card">
+            <div class="table-responsive">
+                <table class="table mb-0 admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nama</th>
+                            <th>Harga</th>
+                            <th>Stok</th>
+                            <th>Dibuat</th>
+                            <th class="text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range $i, $p := .products }}
+                        <tr>
+                            <td>{{ $i }}</td>
+                            <td>{{ $p.Name }}</td>
+                            <td class="price" data-value="{{ $p.Price }}">{{ $p.Price }}</td>
+                            <td>{{ $p.Stock }}</td>
+                            <td>{{ $p.CreatedAtFormatted }}</td>
+                            <td class="text-right">
+                                <a href="/admin/products/{{ $p.ID }}/edit" class="btn-admin-outline">
+                                    Edit
+                                </a>
+                                <form method="POST" action="/admin/products/{{ $p.ID }}/delete" style="display:inline;"
+                                    onsubmit="return confirm('Yakin ingin menghapus produk ini?');">
+                                    <button type="submit" class="btn-admin-danger">
+                                        Hapus
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{ else }}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Belum ada produk.
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .admin-page {
+        background: var(--pastel-bg);
+    }
+
+    .admin-title {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .admin-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .pastel-card {
+        background: var(--pastel-card);
+        border-radius: 18px;
+        border: 1px solid var(--pastel-border);
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.05);
+        padding: 18px 18px 20px;
+    }
+
+    .admin-table thead th {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--pastel-border);
+        border-top: none;
+        background: #f4f3ff;
+    }
+
+    .admin-table tbody td {
+        font-size: 0.9rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--pastel-border);
+    }
+
+    .btn-admin-primary {
+        border-radius: 999px;
+        padding: 8px 16px;
+        border: none;
+        background: var(--pastel-accent);
+        color: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        text-decoration: none;
+        box-shadow: 0 12px 22px rgba(129, 140, 248, 0.5);
+    }
+
+    .btn-admin-primary:hover {
+        background: #7c3aed;
+        color: #fff;
+    }
+
+    .btn-admin-outline,
+    .btn-admin-danger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 5px 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border: 1px solid var(--pastel-border);
+        background: #f9fafb;
+        color: var(--text-main);
+        text-decoration: none;
+        margin-left: 4px;
+    }
+
+    .btn-admin-outline:hover {
+        background: var(--pastel-accent-soft);
+        color: var(--pastel-accent);
+        border-color: var(--pastel-accent);
+    }
+
+    .btn-admin-danger {
+        border-color: #fecaca;
+        color: #b91c1c;
+        background: #fef2f2;
+    }
+
+    .btn-admin-danger:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+    }
+
+    .admin-alert {
+        border-radius: 14px;
+        font-size: 0.85rem;
+    }
+</style>
+{{ end }}

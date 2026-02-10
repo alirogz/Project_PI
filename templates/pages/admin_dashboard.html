@@ -1,0 +1,288 @@
+{{ define "content" }}
+<style>
+    .dash-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+    }
+
+    .dash-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 24px;
+    }
+
+    .dash-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2933;
+    }
+
+    .dash-subtitle {
+        font-size: 14px;
+        color: #7b8794;
+    }
+
+    .dash-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .dash-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 16px 18px;
+        box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
+        border: 1px solid #eef2f7;
+    }
+
+    .dash-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .dash-card-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9aa5b1;
+        font-weight: 600;
+    }
+
+    .dash-chip {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+
+    .dash-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .dash-trend {
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .dash-trend.up {
+        color: #059669;
+    }
+
+    .dash-trend.down {
+        color: #b91c1c;
+    }
+
+    .dash-section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 12px;
+    }
+
+    .dash-table-wrapper {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
+        border: 1px solid #eef2f7;
+        overflow: hidden;
+    }
+
+    .dash-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .dash-table thead {
+        background: #f9fafb;
+    }
+
+    .dash-table th,
+    .dash-table td {
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .dash-table th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9aa5b1;
+    }
+
+    .dash-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .badge-paid {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .badge-pending {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .badge-unpaid {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .dash-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .dash-muted {
+        color: #9aa5b1;
+        font-size: 12px;
+    }
+
+    @media (max-width: 640px) {
+        .dash-container {
+            padding: 16px 12px 32px;
+        }
+
+        .dash-title {
+            font-size: 22px;
+        }
+    }
+</style>
+
+<div class="dash-container">
+    <!-- Header -->
+    <div class="dash-header">
+        <div class="dash-pill">
+            Admin · Dashboard
+        </div>
+        <div>
+            <div class="dash-title">Ringkasan Toko</div>
+            <div class="dash-subtitle">
+                Pantau performa penjualan, pembayaran, dan aktivitas order secara cepat.
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistik kartu -->
+    <div class="dash-grid">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="dash-card-label">Total Order</span>
+                <span class="dash-chip">Semua waktu</span>
+            </div>
+            <div class="dash-value">{{ .TotalOrders }}</div>
+            <div class="dash-trend up">
+                ↑ {{ .TodayOrders }} order hari ini
+            </div>
+        </div>
+
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="dash-card-label">Order Lunas</span>
+                <span class="dash-chip">Paid</span>
+            </div>
+            <div class="dash-value">{{ .TotalPaidOrders }}</div>
+            <div class="dash-trend up">
+                {{ printf "Rp %s" .TodayRevenue }} omzet hari ini
+            </div>
+        </div>
+
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="dash-card-label">Belum Dibayar</span>
+                <span class="dash-chip">Pending</span>
+            </div>
+            <div class="dash-value">{{ .TotalUnpaidOrders }}</div>
+            <div class="dash-trend down">
+                Cek halaman <strong>Orders</strong> untuk follow up.
+            </div>
+        </div>
+
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <span class="dash-card-label">Total Revenue</span>
+                <span class="dash-chip">Rp</span>
+            </div>
+            <div class="dash-value">
+                Rp {{ .TotalRevenue }}
+            </div>
+            <div class="dash-trend up">
+                Target bulan ini: +20% dari bulan lalu.
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabel recent orders -->
+    <div style="margin-top: 8px; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="dash-section-title">Order Terbaru</div>
+        <div class="dash-muted">
+            Menampilkan {{ len .RecentOrders }} order terakhir
+        </div>
+    </div>
+
+    <div class="dash-table-wrapper">
+        <table class="dash-table">
+            <thead>
+                <tr>
+                    <th>Kode</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Pembayaran</th>
+                    <th>Status</th>
+                    <th>Tanggal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ if .RecentOrders }}
+                {{ range .RecentOrders }}
+                <tr>
+                    <td><strong>{{ .Code }}</strong></td>
+                    <td>{{ .CustomerName }}</td>
+                    <td>Rp {{ .Total }}</td>
+                    <td>
+                        {{ if eq .PaymentStatus "paid" }}
+                        <span class="dash-badge badge-paid">PAID</span>
+                        {{ else if eq .PaymentStatus "pending" }}
+                        <span class="dash-badge badge-pending">PENDING</span>
+                        {{ else }}
+                        <span class="dash-badge badge-unpaid">UNPAID</span>
+                        {{ end }}
+                    </td>
+                    <td>{{ .ShippingStatus }}</td>
+                    <td>{{ .CreatedAt }}</td>
+                </tr>
+                {{ end }}
+                {{ else }}
+                <tr>
+                    <td colspan="6" class="dash-muted" style="text-align:center; padding:18px;">
+                        Belum ada order terbaru.
+                    </td>
+                </tr>
+                {{ end }}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{ end }}

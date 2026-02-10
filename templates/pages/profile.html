@@ -1,0 +1,334 @@
+{{ define "profile" }}
+<div class="section section-profile">
+    <div class="container">
+        <h2 class="mb-4">Profil Saya</h2>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="tab-profil" data-toggle="tab" href="#pane-profil" role="tab">
+                    Profil
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="tab-alamat" data-toggle="tab" href="#pane-alamat" role="tab">
+                    Alamat Saya
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="tab-password" data-toggle="tab" href="#pane-password" role="tab">
+                    Ganti Password
+                </a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+
+            <!-- ===================== TAB PROFIL ===================== -->
+            <div class="tab-pane fade show active" id="pane-profil" role="tabpanel" aria-labelledby="tab-profil">
+                <form method="POST" action="/profile">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Nama Depan</label>
+                                <input type="text" name="first_name" class="form-control" value="{{ .user.FirstName }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Nama Belakang</label>
+                                <input type="text" name="last_name" class="form-control" value="{{ .user.LastName }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email (tidak dapat diubah)</label>
+                        <input type="email" class="form-control" value="{{ .user.Email }}" disabled>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Simpan Perubahan</button>
+                </form>
+            </div>
+
+            <!-- ===================== TAB ALAMAT ===================== -->
+            <div class="tab-pane fade" id="pane-alamat" role="tabpanel" aria-labelledby="tab-alamat">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Alamat Saya</h4>
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalAddAddress">
+                    Tambah Alamat
+                    </button>
+                </div>
+
+            <!-- MODAL: Edit Alamat -->
+            <div class="modal fade" id="modalEditAddress" tabindex="-1" role="dialog" aria-labelledby="modalEditAddressLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+            
+                        <form method="POST" id="formEditAddress" action="#">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalEditAddressLabel">Edit Alamat</h5>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+            
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label>Nama Penerima</label>
+                                    <input type="text" name="recipient_name" id="edit_name" class="form-control" required>
+                                </div>
+            
+                                <div class="form-group">
+                                    <label>No HP</label>
+                                    <input type="text" name="phone" id="edit_phone" class="form-control" required>
+                                </div>
+            
+                                <div class="form-group">
+                                    <label>Alamat Lengkap</label>
+                                    <textarea name="address_line" id="edit_address" class="form-control" rows="3"
+                                        required></textarea>
+                                </div>
+            
+                                <div class="form-row">
+                                    <div class="form-group col-md-8">
+                                        <label>Kota / Kabupaten</label>
+                                        <input type="text" name="city" id="edit_city" class="form-control" required>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label>Kode Pos</label>
+                                        <input type="text" name="postcode" id="edit_postcode" class="form-control" required>
+                                    </div>
+                                </div>
+            
+                                <div class="form-check">
+                                    <input type="checkbox" name="is_default" id="edit_default" class="form-check-input">
+                                    <label class="form-check-label">Jadikan sebagai alamat utama</label>
+                                </div>
+                            </div>
+            
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-link" data-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                            </div>
+                        </form>
+            
+                    </div>
+                </div>
+            </div>
+
+
+                {{ if .addresses }}
+                <div class="row">
+                    {{ range .addresses }}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {{ .Name }}
+                                    {{ if .IsPrimary }}
+                                    <span class="badge badge-success ml-2">Utama</span>
+                                    {{ end }}
+                                </h5>
+
+                                <p class="mb-1">{{ .Address1 }}</p>
+                                <p class="mb-1">{{ .CityID }}, {{ .PostCode }}</p>
+                                <p class="mb-1">Telp: {{ .Phone }}</p>
+
+                                <div class="mt-3 d-flex">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditAddress"
+                                        data-id="{{ .ID }}" data-name="{{ .Name }}" data-phone="{{ .Phone }}" data-address="{{ .Address1 }}"
+                                        data-city="{{ .CityID }}" data-postcode="{{ .PostCode }}" data-default="{{ .IsPrimary }}">
+                                        EDIT
+                                    </button>
+
+                                    <form method="POST" action="/addresses/{{ .ID }}/delete" class="mr-2"
+                                        onsubmit="return confirm('Yakin ingin menghapus alamat ini?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                                    </form>
+
+                                    {{ if not .IsPrimary }}
+                                    <form method="POST" action="/addresses/{{ .ID }}/default">
+                                        <button type="submit" class="btn btn-sm btn-link">Jadikan utama</button>
+                                    </form>
+                                    {{ end }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{ end }}
+                </div>
+                {{ else }}
+                <p>Belum ada alamat. Tambahkan alamat terlebih dahulu.</p>
+                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalAddAddress">
+  Tambah Alamat
+</button>
+                {{ end }}
+
+                <!-- MODAL: Tambah Alamat -->
+                <div class="modal fade" id="modalAddAddress" tabindex="-1" role="dialog" aria-labelledby="modalAddAddressLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                
+                            <form method="POST" action="/addresses">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalAddAddressLabel">Tambah Alamat</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label>Nama Penerima</label>
+                                        <input type="text" name="recipient_name" class="form-control" required>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label>No HP</label>
+                                        <input type="text" name="phone" class="form-control" required>
+                                    </div>
+                
+                                    <div class="form-group">
+                                        <label>Alamat Lengkap</label>
+                                        <textarea name="address_line" class="form-control" rows="3" required></textarea>
+                                    </div>
+                
+                                    <div class="form-row">
+                                        <div class="form-group col-md-8">
+                                            <label>Kota / Kabupaten</label>
+                                            <input type="text" name="city" class="form-control" required>
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label>Kode Pos</label>
+                                            <input type="text" name="postcode" class="form-control" required>
+                                        </div>
+                                    </div>
+                
+                                    <div class="form-group form-check">
+                                        <input type="checkbox" name="is_default" class="form-check-input" id="isDefaultModal">
+                                        <label class="form-check-label" for="isDefaultModal">Jadikan sebagai alamat utama</label>
+                                    </div>
+                                </div>
+                
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-link" data-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-primary">Simpan Alamat</button>
+                                </div>
+                            </form>
+                
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </div>
+
+            <!-- ===================== TAB PASSWORD ===================== -->
+            <div class="tab-pane fade" id="pane-password" role="tabpanel" aria-labelledby="tab-password">
+                <h4 class="mb-4">Ganti Password</h4>
+
+                <!-- kalau ada flash error dari controller, tampilkan di sini juga -->
+                {{ if .errors }}
+                <div class="alert alert-danger">
+                    {{ range .errors }}
+                    <div>{{ . }}</div>
+                    {{ end }}
+                </div>
+                {{ end }}
+
+                <form method="POST" action="/profile/password">
+                    <div class="form-group">
+                        <label>Password Lama</label>
+                        <input type="password" name="current_password" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password Baru</label>
+                        <input type="password" name="new_password" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Konfirmasi Password Baru</label>
+                        <input type="password" name="new_password_confirmation" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Simpan Password</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Buka tab otomatis berdasarkan hash: #profil / #alamat / #password -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const hash = (window.location.hash || "").replace("#", "").toLowerCase();
+        if (!hash) return;
+
+        const map = {
+            profil: "#pane-profil",
+            alamat: "#pane-alamat",
+            password: "#pane-password",
+        };
+
+        const targetPane = map[hash];
+        if (!targetPane) return;
+
+        const tabLink = document.querySelector('a[href="' + targetPane + '"]');
+        if (!tabLink) return;
+
+        // Trigger bootstrap tab
+        tabLink.click();
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // bersihin backdrop kalau “nyangkut”
+        document.body.classList.remove("modal-open");
+        document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+    });
+</script>
+
+<script>
+    $('#modalEditAddress').on('show.bs.modal', function (event) {
+        const button = $(event.relatedTarget)
+
+        const id = button.data('id')
+        const name = button.data('name')
+        const phone = button.data('phone')
+        const address = button.data('address')
+        const city = button.data('city')
+        const postcode = button.data('postcode')
+        const isDefault = button.data('default')
+
+        const modal = $(this)
+
+        modal.find('#edit_name').val(name)
+        modal.find('#edit_phone').val(phone)
+        modal.find('#edit_address').val(address)
+        modal.find('#edit_city').val(city)
+        modal.find('#edit_postcode').val(postcode)
+        modal.find('#edit_default').prop('checked', isDefault)
+
+        // set action form
+        modal.find('#formEditAddress').attr('action', '/addresses/' + id + '/update')
+    })
+</script>
+
+<script>
+    $('.modal').on('hidden.bs.modal', function () {
+        $('body').removeClass('modal-open')
+        $('.modal-backdrop').remove()
+    })
+</script>
+
+
+
+{{ end }}

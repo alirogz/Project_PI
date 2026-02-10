@@ -1,0 +1,68 @@
+{{ define "order_pay_manual" }}
+<section class="pt-5 pb-5">
+    <div class="container">
+
+        <h3 class="mb-3">Pembayaran Manual</h3>
+        <p class="text-muted mb-4">
+            Kode Pesanan: <strong>{{ .order.Code }}</strong><br>
+            Total yang harus dibayar: <strong>{{ formatRupiah .order.GrandTotalFloat }}</strong>
+        </p>
+
+        {{ if .success }}
+        <div class="alert alert-success">{{ index .success 0 }}</div>
+        {{ end }}
+
+        {{ if .error }}
+        <div class="alert alert-danger">{{ index .error 0 }}</div>
+        {{ end }}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="mb-3">Instruksi Pembayaran</h6>
+                        <p class="mb-1">Silakan transfer ke rekening berikut:</p>
+                        <ul class="mb-3">
+                            <li><strong>Bank:</strong> BNI</li>
+                            <li><strong>No. Rekening:</strong> 1234567890</li>
+                            <li><strong>Atas Nama:</strong> GOSHOP OFFICIAL</li>
+                        </ul>
+                        <p class="mb-0 text-muted">
+                            Setelah transfer, upload bukti pembayaran menggunakan form di samping.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="mb-3">Upload Bukti Transfer</h6>
+
+                        <form action="/orders/{{ .order.ID }}/pay-manual" method="POST" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="payment_proof">Foto / Screenshot Bukti Transfer</label>
+                                <input type="file" class="form-control-file" id="payment_proof" name="payment_proof"
+                                    required>
+                                <small class="form-text text-muted">Format: JPG, PNG, maksimal 5–10 MB.</small>
+                            </div>
+
+                            {{ if .order.PaymentProof }}
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Bukti terakhir yang diupload:</strong></p>
+                                <img src="/uploads/payments/{{ .order.PaymentProof }}" alt="Bukti Transfer"
+                                    style="max-width: 250px; border-radius: 8px;">
+                            </div>
+                            {{ end }}
+
+                            <button type="submit" class="btn btn-primary">Kirim Bukti Pembayaran</button>
+                            <a href="/orders/{{ .order.ID }}" class="btn btn-outline-secondary ml-2">Kembali</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{{ end }}

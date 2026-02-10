@@ -1,0 +1,142 @@
+{{ define "login" }}
+<section class="auth-page py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+
+                <div class="auth-card pastel-card">
+                    <h1 class="auth-title mb-1">Masuk</h1>
+                    <p class="auth-subtitle mb-4">
+                        Login untuk melanjutkan belanja fashion favoritmu.
+                    </p>
+
+                    {{ if .error }}
+                    <div class="alert alert-danger pastel-auth-alert">
+                        {{ index .error 0 }}
+                    </div>
+                    {{ end }}
+
+                    <form method="POST" action="/login">
+                        <div class="form-group mb-3">
+                            <label class="auth-label" for="email">Email</label>
+                            <input type="email" class="form-control form-control-sm auth-input" id="email" name="email"
+                                placeholder="Contoh@gmail.com" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="auth-label" for="password">Password</label>
+                            <input type="password" class="form-control form-control-sm auth-input" id="password"
+                                name="password" placeholder="••••••••" required>
+                        </div>
+
+                        <button type="submit" class="btn-auth-primary w-100 mt-2">
+                            Masuk
+                        </button>
+                    </form>
+
+                    <div class="auth-footer mt-4">
+                        <span class="auth-footer-text">Belum punya akun?</span>
+                        <a href="/register" class="auth-footer-link">Daftar sekarang</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .auth-page {
+        background: var(--pastel-bg);
+        min-height: calc(100vh - 140px);
+        display: flex;
+        align-items: center;
+    }
+
+    .auth-card {
+        padding: 26px 24px 24px 24px;
+    }
+
+    .auth-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .auth-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .auth-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .auth-input {
+        border-radius: 999px;
+        border-color: var(--pastel-border);
+        font-size: 0.9rem;
+    }
+
+    .auth-input:focus {
+        border-color: var(--pastel-accent);
+        box-shadow: 0 0 0 0.15rem rgba(129, 140, 248, 0.25);
+    }
+
+    .btn-auth-primary {
+        border-radius: 999px;
+        padding: 10px 18px;
+        border: none;
+        background: var(--pastel-accent);
+        color: #ffffff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        box-shadow: 0 12px 22px rgba(129, 140, 248, 0.5);
+        transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+    }
+
+    .btn-auth-primary:hover {
+        background: #7c3aed;
+        box-shadow: 0 16px 28px rgba(79, 70, 229, 0.6);
+        transform: translateY(-1px);
+    }
+
+    .auth-footer {
+        text-align: center;
+        font-size: 0.85rem;
+    }
+
+    .auth-footer-text {
+        color: var(--text-muted);
+        margin-right: 4px;
+    }
+
+    .auth-footer-link {
+        font-weight: 600;
+        color: var(--pastel-accent);
+        text-decoration: none;
+    }
+
+    .auth-footer-link:hover {
+        color: #7c3aed;
+    }
+
+    .pastel-auth-alert {
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 767.98px) {
+        .auth-card {
+            padding: 22px 18px;
+        }
+    }
+</style>
+{{ end }}

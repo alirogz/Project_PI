@@ -1,0 +1,55 @@
+{{ define "admin_chats" }}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h4 mb-1">Admin Live Chat</h1>
+                <p class="text-muted mb-0">Daftar percakapan user.</p>
+            </div>
+            <a class="btn btn-sm btn-outline-primary" href="/admin/dashboard">Dashboard</a>
+        </div>
+
+        <div class="card" style="border-radius:16px; overflow:hidden;">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Update Terakhir</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ if .chats }}
+                            {{ range .chats }}
+                            <tr>
+                                <td>{{ .User.FirstName }} {{ .User.LastName }}</td>
+                                <td>{{ .User.Email }}</td>
+                                <td>{{ .UpdatedAt.Format "02 Jan 2006 15:04" }}</td>
+                            <td class="text-right">
+                                <a class="btn btn-sm btn-primary" href="/admin/chats/{{ .ID }}">
+                                    Buka
+                                    {{ $u := index $.unread .ID }}
+                                    {{ if gt $u 0 }}
+                                    <span class="badge badge-light ml-2">{{ $u }}</span>
+                                    {{ end }}
+                                </a>
+                            </td>
+
+                            </tr>
+                            {{ end }}
+                            {{ else }}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">Belum ada chat.</td>
+                            </tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{{ end }}

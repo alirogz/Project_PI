@@ -1,0 +1,50 @@
+{{ define "addresses_form" }}
+<div class="section">
+    <div class="container">
+        <h2 class="mb-4">{{ .formTitle }}</h2>
+
+        <form method="POST" action="{{ .formAction }}">
+            <div class="form-group">
+                <label>Nama Penerima</label>
+                <!-- Name di struct Address -->
+                <input type="text" name="recipient_name" class="form-control" value="{{ .address.Name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>No HP</label>
+                <!-- Phone di struct Address -->
+                <input type="text" name="phone" class="form-control" value="{{ .address.Phone }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Alamat Lengkap</label>
+                <!-- Address1 di struct Address -->
+                <textarea name="address_line" class="form-control" rows="3" required>{{ .address.Address1 }}</textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-8">
+                    <label>Kota / Kabupaten</label>
+                    <!-- CityID di struct Address (kamu pakai string, bisa isi nama kota langsung) -->
+                    <input type="text" name="city" class="form-control" value="{{ .address.CityID }}" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label>Kode Pos</label>
+                    <!-- PostCode di struct Address -->
+                    <input type="text" name="postcode" class="form-control" value="{{ .address.PostCode }}" required>
+                </div>
+            </div>
+
+            <div class="form-group form-check">
+                <!-- IsPrimary di struct Address -->
+                <input type="checkbox" name="is_default" class="form-check-input" id="isDefault" {{ if
+                    .address.IsPrimary }}checked{{ end }}>
+                <label class="form-check-label" for="isDefault">Jadikan sebagai alamat utama</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Simpan</button>
+            <a href="/addresses" class="btn btn-link">Batal</a>
+        </form>
+    </div>
+</div>
+{{ end }}

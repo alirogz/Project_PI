@@ -1,0 +1,391 @@
+{{ define "order_detail" }}
+<section class="order-detail-page py-5">
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h1 class="orders-title mb-1">Detail Pesanan</h1>
+                <p class="orders-subtitle mb-0">
+                    Kode pesanan: <strong>{{ .order.Code }}</strong>
+                </p>
+            </div>
+            <div class="mt-3 mt-md-0 text-md-right">
+                {{ $ps := lower .order.PaymentStatus }}
+                <span class="payment-chip
+                    {{ if eq $ps " paid" }} payment-chip-paid {{ else if eq $ps "waiting_review" }} payment-chip-review
+                    {{ else if eq $ps "rejected" }} payment-chip-reject {{ else }} payment-chip-unpaid {{ end }}">
+                    {{ .order.PaymentStatusText }}
+                </span>
+                <div class="mt-1 small text-muted">
+                    Status pesanan: <strong>{{ .order.StatusText }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="row g-4">
+            <!-- KIRI: ITEM & STEPS -->
+            <div class="col-lg-8 mb-4 mb-lg-0">
+
+                <!-- STATUS TRACKING -->
+                <div class="pastel-card mb-4">
+                    <h6 class="mb-3 orders-label">Status Pengiriman</h6>
+                    {{ $step := .order.StatusStep }}
+                    <div class="order-steps d-flex justify-content-between">
+                        <div class="step {{ if ge $step 1 }}active{{ end }}">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Pending</div>
+                        </div>
+                        <div class="step {{ if ge $step 2 }}active{{ end }}">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Diproses</div>
+                        </div>
+                        <div class="step {{ if ge $step 3 }}active{{ end }}">
+                            <div class="step-circle">3</div>
+                            <div class="step-label">Dikirim</div>
+                        </div>
+                        <div class="step {{ if ge $step 4 }}active{{ end }}">
+                            <div class="step-circle">4</div>
+                            <div class="step-label">Selesai</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ITEM PESANAN -->
+                <div class="table-responsive">
+                    <table class="table mb-0 orders-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th></th>
+                                <th>Produk</th>
+                                <th>Ukuran</th>
+                                <th>Harga</th>
+                                <th>Qty</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                
+                        <tbody>
+                            {{ range $i, $item := .order.OrderItems }}
+                            <tr>
+                                <td>{{ add $i 1 }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {{ if $item.ProductImageURL }}
+                                        <img src="{{ $item.ProductImageURL }}" alt="{{ $item.Name }}" class="order-item-img mr-2">
+                                        {{ end }}
+                                    </div>
+                                </td>
+                                <td>{{ $item.Name }}</td>
+                                <td>{{ $item.Size }}</td>
+                                <td>{{ formatRupiah $item.BasePriceFloat }}</td>
+                                <td>{{ $item.Qty }}</td>
+                                <td>{{ formatRupiah $item.SubTotalFloat }}</td>
+                            </tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- KANAN: RINGKASAN & CUSTOMER -->
+            <div class="col-lg-4">
+
+                <div class="pastel-card mb-3">
+                    <h6 class="mb-3 orders-label">Ringkasan Pesanan</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-1">
+                            <strong>Tanggal:</strong>
+                            {{ .order.CreatedAt.Format "02 Jan 2006 15:04" }}
+                        </li>
+                        <li class="mb-1">
+                            <strong>Status:</strong> {{ .order.StatusText }}
+                        </li>
+                        <li class="mb-1">
+                            <strong>Metode Pembayaran:</strong> {{ .order.PaymentMethod }}
+                        </li>
+                        <li class="mb-1">
+                            <strong>Subtotal:</strong> {{ formatRupiah .order.SubtotalFloat }}
+                        </li>
+                        <li class="mb-1">
+                            <strong>Ongkir:</strong> {{ formatRupiah .order.ShippingCostFloat }}
+                        </li>
+                        <li class="mb-1">
+                            <strong>Total:</strong> {{ formatRupiah .order.GrandTotalFloat }}
+                        </li>
+                        <li class="mb-1">
+                            <strong>Waktu Pembayaran:</strong>
+                            {{ if .order.PaidAt.Valid }}
+                            {{ .order.PaidAt.Time.Format "02 Jan 2006 15:04" }}
+                            {{ else }}
+                            -
+                            {{ end }}
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="pastel-card mb-3">
+                    <h6 class="orders-label mb-3">Pembayaran via Transfer Bank</h6>
+                
+            <p class="small mb-1">Silakan transfer sebesar:</p>
+            <p class="font-weight-bold text-primary mb-1">
+                 {{ formatRupiah .order.PaymentTotalFloat }}
+            </p>
+            <small class="text-muted d-block">
+                (Total belanja Rp {{ formatRupiah .order.GrandTotalFloat }} + kode unik {{ .order.PaymentUniqueCode }})
+            </small>
+
+
+                
+                    <p class="small mb-1">Ke rekening:</p>
+                    <ul class="small mb-3">
+                        <li><strong>BCA</strong> 123456789 a.n. PT Goshop Fashion</li>
+                        <li><strong>BRI</strong> 987654321 a.n. PT Goshop Fashion</li>
+                    </ul>
+                
+                    {{ if eq .order.PaymentStatus "PAID" }}
+                    <div class="alert alert-success admin-alert mb-0">
+                        Pembayaran sudah dikonfirmasi. Terima kasih 😊
+                    </div>
+                
+                    {{ else }}
+                    {{ if .order.PaymentProof }}
+                    <div class="alert alert-info admin-alert">
+                        Kamu sudah mengunggah bukti pembayaran. Status saat ini:
+                        <strong>{{ .order.PaymentStatusText }}</strong>
+                    </div>
+                    {{ end }}
+                
+                    <form method="POST" action="/orders/{{ .order.ID }}/payment-proof" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label class="admin-label">Upload Bukti Transfer</label>
+                            <input type="file" name="payment_proof" class="form-control admin-input" required>
+                            <small class="form-text text-muted">
+                                Format: JPG, PNG, atau PDF. Maks. 2MB.
+                            </small>
+                        </div>
+                
+                        <button type="submit" class="btn-admin-primary">
+                            Upload Bukti Pembayaran
+                        </button>
+                    </form>
+                    {{ end }}
+                </div>
+
+
+                <div class="pastel-card mb-3">
+                    <h6 class="mb-3 orders-label">Data Penerima</h6>
+                    <p class="mb-1 small">
+                        <strong>Nama:</strong><br>
+                        {{ .order.OrderCustomer.FirstName }} {{ .order.OrderCustomer.LastName }}
+                    </p>
+                    <p class="mb-1 small">
+                        <strong>Telepon:</strong><br>
+                        {{ .order.OrderCustomer.Phone }}
+                    </p>
+                    <p class="mb-1 small">
+                        <strong>Email:</strong><br>
+                        {{ .order.OrderCustomer.Email }}
+                    </p>
+                    <p class="mb-0 small">
+                        <strong>Alamat:</strong><br>
+                        {{ .order.OrderCustomer.Address1 }} {{ .order.OrderCustomer.Address2 }}
+                        {{ .order.OrderCustomer.PostCode }}
+                    </p>
+                </div>
+
+                {{ if .order.PaymentProof }}
+                <div class="pastel-card mb-3">
+                    <h6 class="mb-3 orders-label">Bukti Transfer</h6>
+                    <img src="/uploads/payments/{{ .order.PaymentProof }}" alt="Bukti Transfer" class="img-fluid"
+                        style="border-radius: 12px;">
+                </div>
+                {{ end }}
+
+                <div class="d-flex justify-content-between">
+                    <a href="/orders" class="btn-order-back">
+                        Kembali ke Pesanan
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .order-detail-page {
+        background: var(--pastel-bg);
+    }
+
+    .orders-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .orders-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .pastel-card {
+        background: var(--pastel-card);
+        border-radius: 18px;
+        border: 1px solid var(--pastel-border);
+        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.05);
+        padding: 18px 18px 20px;
+    }
+
+    .orders-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+    }
+
+    /* Payment chip di header */
+    .payment-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border: 1px solid transparent;
+    }
+
+    .payment-chip-paid {
+        background: #dcfce7;
+        color: #15803d;
+        border-color: #22c55e;
+    }
+
+    .payment-chip-review {
+        background: #f5f3ff;
+        color: #5b21b6;
+        border-color: #a855f7;
+    }
+
+    .payment-chip-reject {
+        background: #fee2e2;
+        color: #b91c1c;
+        border-color: #f97373;
+    }
+
+    .payment-chip-unpaid {
+        background: #fef2f2;
+        color: #b91c1c;
+        border-color: #fecaca;
+    }
+
+    /* Steps */
+    .order-steps {
+        position: relative;
+        padding-top: 10px;
+        padding-bottom: 4px;
+    }
+
+    .order-steps::before {
+        content: "";
+        position: absolute;
+        top: 27px;
+        left: 8%;
+        right: 8%;
+        height: 2px;
+        background: #e5e7eb;
+        z-index: 1;
+    }
+
+    .order-steps .step {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        flex: 1;
+    }
+
+    .order-steps .step-circle {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 4px;
+        background: #e5e7eb;
+        color: #6b7280;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .order-steps .step-label {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    .order-steps .step.active .step-circle {
+        background: var(--pastel-accent);
+        color: #ffffff;
+    }
+
+    .order-steps .step.active .step-label {
+        color: var(--pastel-accent);
+        font-weight: 600;
+    }
+
+    /* Tabel item */
+    .orders-table thead th {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--pastel-border);
+        border-top: none;
+        background: #f4f3ff;
+    }
+
+    .orders-table tbody td {
+        font-size: 0.9rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--pastel-border);
+    }
+
+    .order-item-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    .btn-order-back {
+        border-radius: 999px;
+        padding: 8px 16px;
+        border: 1px solid var(--pastel-border);
+        background: #f9fafb;
+        color: var(--text-main);
+        font-size: 0.85rem;
+        text-decoration: none;
+    }
+
+    .btn-order-back:hover {
+        background: #ede9fe;
+        border-color: var(--pastel-accent);
+        color: var(--pastel-accent);
+    }
+
+    @media (max-width: 767.98px) {
+        .orders-title {
+            font-size: 1.5rem;
+        }
+
+        .pastel-card {
+            padding: 14px 14px 16px;
+        }
+    }
+</style>
+{{ end }}

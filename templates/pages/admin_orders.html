@@ -1,0 +1,105 @@
+{{ define "admin_orders" }}
+<section class="admin-page py-5">
+    <div class="container">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h1 class="admin-title mb-1">Admin • Orders</h1>
+                <p class="admin-subtitle mb-0">
+                    Pantau dan kelola semua pesanan yang masuk ke toko kamu.
+                </p>
+            </div>
+        </div>
+
+        {{ if .success }}<div class="alert alert-success admin-alert mb-3">{{ index .success 0 }}</div>{{ end }}
+        {{ if .error }}<div class="alert alert-danger admin-alert mb-3">{{ index .error 0 }}</div>{{ end }}
+
+        <div class="pastel-card">
+            <div class="table-responsive">
+                <table class="table mb-0 admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Code</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th class="text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range $i, $o := .orders }}
+                        <tr>
+                            <td>{{ $i }}</td>
+                            <td>{{ $o.Code }}</td>
+                            <td>{{ $o.OrderCustomer.FirstName }} {{ $o.OrderCustomer.LastName }}</td>
+                            <td>{{ formatRupiah $o.GrandTotalFloat }}</td>
+
+                            <td>
+                                {{ if $o.IsPaid }}
+                                <span class="status-pill status-pill-paid">PAID</span>
+                                {{ else }}
+                                <span class="status-pill status-pill-unpaid">UNPAID</span>
+                                {{ end }}
+                            </td>
+
+                            <td>
+                                <span class="status-pill status-pill-neutral">
+                                    {{ $o.StatusText }}
+                                </span>
+                            </td>
+
+                            <td>{{ $o.CreatedAt }}</td>
+                            <td class="text-right">
+                                <a class="btn-admin-outline" href="/admin/orders/{{ $o.ID }}">Detail</a>
+                            </td>
+                        </tr>
+                        {{ else }}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No data
+                            </td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border: 1px solid transparent;
+    }
+
+    .status-pill-paid {
+        background: #dcfce7;
+        color: #15803d;
+        border-color: #22c55e;
+    }
+
+    .status-pill-unpaid {
+        background: #fef2f2;
+        color: #b91c1c;
+        border-color: #fecaca;
+    }
+
+    .status-pill-neutral {
+        background: #e5e7eb;
+        color: #374151;
+        border-color: #d1d5db;
+    }
+</style>
+{{ end }}

@@ -1,0 +1,146 @@
+{{ define "admin_chat_show" }}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h4 mb-1">Chat: {{ .chat.User.FirstName }} {{ .chat.User.LastName }}</h1>
+                <p class="text-muted mb-0">{{ .chat.User.Email }}</p>
+            </div>
+            <a class="btn btn-sm btn-outline-primary" href="/admin/chats">Kembali</a>
+        </div>
+
+        <div class="card" style="border-radius:16px; overflow:hidden;">
+            <div id="chatBox" class="card-body" style="height:420px; overflow:auto; background:#fafafa;">
+                {{ if .messages }}
+            {{ range .messages }}
+            {{ $isAdmin := eq .SenderRole "admin" }}
+            <div class="d-flex mb-2 {{ if $isAdmin }}justify-content-start{{ else }}justify-content-end{{ end }}">
+                <div class="px-3 py-2"
+                    style="max-width:75%; border-radius:14px; padding:8px 12px;
+                  {{ if $isAdmin }}background:#ffffff; border:1px solid #e5e7eb;{{ else }}background:#ede9fe; text-align:right;{{ end }}">
+            
+                    <small style="font-weight:600; display:block; margin-bottom:2px;">
+                        {{ if $isAdmin }}Admin{{ else }}{{ $.chat.User.FirstName }} {{ $.chat.User.LastName }}{{ end }}
+                    </small>
+            
+                    <div style="white-space:pre-wrap;">{{ .Message }}</div>
+                    <small class="text-muted d-block" style="font-size:11px;">{{ .CreatedAt.Format "02 Jan 2006 15:04" }}</small>
+                </div>
+            </div>
+            {{ end }}
+
+
+                {{ else }}
+                <div class="text-center text-muted">Belum ada pesan.</div>
+                {{ end }}
+            </div>
+
+            <div class="card-footer" style="background:#fff;">
+                <form id="chatForm" class="d-flex" autocomplete="off">
+                    <input id="chatInput" type="text" name="message" class="form-control" placeholder="Balas pesan..."
+                        required />
+                    <button class="btn btn-primary ml-2" type="submit">Kirim</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    (function () {
+        const USER_NAME = '{{ .chat.User.FirstName }} {{ .chat.User.LastName }}';
+
+        const chatID = '{{ .chat.ID }}';
+        const box = document.getElementById('chatBox');
+        const form = document.getElementById('chatForm');
+        const input = document.getElementById('chatInput');
+        let lastTs = Number('{{ .lastTs }}') || 0;
+
+        function scrollToBottom() { box.scrollTop = box.scrollHeight; }
+
+        function escapeHtml(s) {
+            return (s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c]));
+        }
+
+        function renderMessage(m) {
+            const isAdmin = m.SenderRole === 'admin';
+
+            const row = document.createElement('div');
+          row.className = 'd-flex mb-2 ' + (isAdmin ? 'justify-content-start' : 'justify-content-end');
+
+
+            const bubble = document.createElement('div');
+            bubble.style.maxWidth = '75%';
+            bubble.style.borderRadius = '14px';
+            bubble.style.padding = '8px 12px';
+
+            if (isAdmin) {
+                bubble.style.background = '#ffffff';
+                bubble.style.border = '1px solid #e5e7eb';
+            } else {
+                bubble.style.background = '#ede9fe';
+                bubble.style.textAlign = 'right';
+            }
+
+
+            const name = document.createElement('small');
+            name.style.fontWeight = '600';
+            name.style.display = 'block';
+            name.textContent = isAdmin ? 'Admin' : USER_NAME;
+
+            const msg = document.createElement('div');
+            msg.style.whiteSpace = 'pre-wrap';
+            msg.textContent = m.Message;
+
+            const time = document.createElement('small');
+            time.className = 'text-muted d-block';
+            time.style.fontSize = '11px';
+            time.textContent = new Date(m.CreatedAt).toLocaleString('id-ID');
+
+            bubble.appendChild(name);
+            bubble.appendChild(msg);
+            bubble.appendChild(time);
+
+            row.appendChild(bubble);
+            box.appendChild(row);
+        }
+
+
+        async function poll() {
+            try {
+                const res = await fetch('/admin/chats/' + chatID + '/messages?after=' + lastTs);
+                if (!res.ok) return;
+                const data = await res.json();
+                const msgs = data.messages || [];
+                if (msgs.length) {
+                    msgs.forEach(m => {
+                        renderMessage(m);
+                        const t = new Date(m.CreatedAt).getTime();
+                        if (!isNaN(t) && t > lastTs) lastTs = t;
+                    });
+                    scrollToBottom();
+                }
+            } catch (e) { }
+        }
+
+        form.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            const body = new URLSearchParams();
+            body.set('message', text);
+
+            const res = await fetch('/admin/chats/' + chatID + '/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body
+            });
+            if (res.ok) { await poll(); }
+        });
+
+        scrollToBottom();
+        setInterval(poll, 2000);
+    })();
+</script>
+{{ end }}
